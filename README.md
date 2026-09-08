@@ -1,4 +1,4 @@
-# LogSentinel
+
 # 🛡️ LogSentinel
 > **Desenvolvido por:** Fernando Maiorani
 
