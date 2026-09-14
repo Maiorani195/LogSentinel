@@ -3,7 +3,7 @@ package com.logsentinel.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import com.logsentinel.history.HistoryRepository;
-
+import com.logsentinel.history.PositionStore;
 import java.util.List;
 import java.util.Map;
 
@@ -12,10 +12,12 @@ public class StartupCheck implements CommandLineRunner {
 
     private final LogSentinelProperties properties;
     private final HistoryRepository historyRepository;
+    private  final PositionStore positionStore;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore) {
         this.properties = properties;
         this.historyRepository = historyRepository;
+        this.positionStore = positionStore;
     }
 
     @Override
@@ -31,6 +33,7 @@ public class StartupCheck implements CommandLineRunner {
         List<Map<String, Object>> anomalias = historyRepository.listar_todas();
         System.out.println("Anomalias no banco: " + anomalias);
 
-
+        positionStore.salvarPosicao("teste.log", 150);
+        System.out.println("Posição salva: " + positionStore.recuperarPosicao());
     }
 }

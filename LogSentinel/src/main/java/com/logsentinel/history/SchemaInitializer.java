@@ -23,6 +23,7 @@ public class SchemaInitializer implements CommandLineRunner {
                 ")");
 
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS file_position("+
+                "ID INTEGER PRIMARY KEY,"+
                 "path TEXT,"+
                 "last_offset INTEGER" +
                 ")");
