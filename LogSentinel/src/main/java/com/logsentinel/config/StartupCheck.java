@@ -6,6 +6,7 @@ import com.logsentinel.history.HistoryRepository;
 import com.logsentinel.history.PositionStore;
 import java.util.List;
 import java.util.Map;
+import com.logsentinel.Watcher.LogWatcher;
 
 @Component
 public class StartupCheck implements CommandLineRunner {
@@ -13,11 +14,13 @@ public class StartupCheck implements CommandLineRunner {
     private final LogSentinelProperties properties;
     private final HistoryRepository historyRepository;
     private  final PositionStore positionStore;
+    private final LogWatcher logWatcher;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher) {
         this.properties = properties;
         this.historyRepository = historyRepository;
         this.positionStore = positionStore;
+        this.logWatcher = logWatcher;
     }
 
     @Override
@@ -33,7 +36,7 @@ public class StartupCheck implements CommandLineRunner {
         List<Map<String, Object>> anomalias = historyRepository.listar_todas();
         System.out.println("Anomalias no banco: " + anomalias);
 
-        positionStore.salvarPosicao("teste.log", 150);
-        System.out.println("Posição salva: " + positionStore.recuperarPosicao());
+
+        logWatcher.lerNovasLinhas("teste.log");
     }
 }
