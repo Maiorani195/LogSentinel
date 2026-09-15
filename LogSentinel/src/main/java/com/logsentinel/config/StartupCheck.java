@@ -1,26 +1,31 @@
 package com.logsentinel.config;
 
+import com.logsentinel.watcher.FileWatcherService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import com.logsentinel.history.HistoryRepository;
 import com.logsentinel.history.PositionStore;
 import java.util.List;
 import java.util.Map;
-import com.logsentinel.Watcher.LogWatcher;
+import com.logsentinel.watcher.LogWatcher;
 
 @Component
+@Order(2)
 public class StartupCheck implements CommandLineRunner {
 
     private final LogSentinelProperties properties;
     private final HistoryRepository historyRepository;
     private  final PositionStore positionStore;
     private final LogWatcher logWatcher;
+    private final FileWatcherService fileWatcherService;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService) {
         this.properties = properties;
         this.historyRepository = historyRepository;
         this.positionStore = positionStore;
         this.logWatcher = logWatcher;
+        this.fileWatcherService =fileWatcherService;
     }
 
     @Override
@@ -36,7 +41,13 @@ public class StartupCheck implements CommandLineRunner {
         List<Map<String, Object>> anomalias = historyRepository.listar_todas();
         System.out.println("Anomalias no banco: " + anomalias);
 
+        fileWatcherService.iniciarMonitoramento();
 
-        logWatcher.lerNovasLinhas("teste.log");
+
+       logWatcher.lerNovasLinhas("teste.log");
+
+
+
+
     }
 }

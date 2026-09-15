@@ -1,4 +1,4 @@
-package com.logsentinel.Watcher;
+package com.logsentinel.watcher;
 
 import org.springframework.stereotype.Component;
 import com.logsentinel.history.PositionStore;
