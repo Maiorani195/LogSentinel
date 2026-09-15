@@ -1,5 +1,6 @@
 package com.logsentinel.config;
 
+import com.logsentinel.detector.KeywordDetector;
 import com.logsentinel.watcher.FileWatcherService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -19,13 +20,15 @@ public class StartupCheck implements CommandLineRunner {
     private  final PositionStore positionStore;
     private final LogWatcher logWatcher;
     private final FileWatcherService fileWatcherService;
+    private  final KeywordDetector keywordDetector;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector) {
         this.properties = properties;
         this.historyRepository = historyRepository;
         this.positionStore = positionStore;
         this.logWatcher = logWatcher;
         this.fileWatcherService =fileWatcherService;
+        this.keywordDetector = keywordDetector;
     }
 
     @Override
@@ -41,8 +44,11 @@ public class StartupCheck implements CommandLineRunner {
         List<Map<String, Object>> anomalias = historyRepository.listar_todas();
         System.out.println("Anomalias no banco: " + anomalias);
 
-        fileWatcherService.iniciarMonitoramento();
 
+        System.out.println(keywordDetector.contemPalavraChave("2026-09-14 10:00:05 ERROR Falha ao conectar"));
+        System.out.println(keywordDetector.contemPalavraChave("2026-09-14 10:00:10 INFO Requisicao processada"));
+
+        fileWatcherService.iniciarMonitoramento();
 
 
 

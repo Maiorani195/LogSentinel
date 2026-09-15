@@ -21,9 +21,6 @@ public  void lerNovasLinhas(String path ) {
         long offsetSalvo = positionStore.recuperarPosicao();
         long tamanhoArquivo = arquivo.length();
 
-        System.out.println("DEBUG - offset salvo: " + offsetSalvo);
-        System.out.println("DEBUG - tamanho do arquivo: " + tamanhoArquivo);
-
         long offsetParaUsar;
         if (offsetSalvo > tamanhoArquivo) {
             offsetParaUsar = 0;
