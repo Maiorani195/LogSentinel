@@ -17,21 +17,32 @@ public class LogWatcher {
     }
 
 public  void lerNovasLinhas(String path ) {
-try (RandomAccessFile arquivo = new RandomAccessFile(path , "r")) {
-   // arquivo.seek(positionStore.recuperarPosicao());
-    arquivo.seek(0);
+    try (RandomAccessFile arquivo = new RandomAccessFile(path, "r")) {
+        long offsetSalvo = positionStore.recuperarPosicao();
+        long tamanhoArquivo = arquivo.length();
 
-    String linha;
-    while ((linha = arquivo.readLine()) != null) {
-        System.out.println(linha);
+        System.out.println("DEBUG - offset salvo: " + offsetSalvo);
+        System.out.println("DEBUG - tamanho do arquivo: " + tamanhoArquivo);
+
+        long offsetParaUsar;
+        if (offsetSalvo > tamanhoArquivo) {
+            offsetParaUsar = 0;
+        } else {
+            offsetParaUsar = offsetSalvo;
+        }
+
+        arquivo.seek(offsetParaUsar);
+
+        String linha;
+        while ((linha = arquivo.readLine()) != null) {
+            System.out.println(linha);
+        }
+        positionStore.salvarPosicao(path, arquivo.getFilePointer());
+    } catch (IOException e) {
+        e.printStackTrace();
     }
-    positionStore.salvarPosicao(path, arquivo.getFilePointer());
-}catch (IOException e ) {
-    e.printStackTrace();
-
-}
-
-
 }
 
 }
+
+
