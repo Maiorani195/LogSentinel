@@ -1,6 +1,7 @@
 package com.logsentinel.config;
 
 import com.logsentinel.detector.BruteForceDetector;
+import com.logsentinel.detector.CascadeDetector;
 import com.logsentinel.detector.KeywordDetector;
 import com.logsentinel.watcher.FileWatcherService;
 import org.springframework.boot.CommandLineRunner;
@@ -23,8 +24,10 @@ public class StartupCheck implements CommandLineRunner {
     private final FileWatcherService fileWatcherService;
     private  final KeywordDetector keywordDetector;
     private final BruteForceDetector bruteForceDetector;
+    private  final CascadeDetector cascadeDetector;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector , CascadeDetector cascadeDetector) {
+
         this.properties = properties;
         this.historyRepository = historyRepository;
         this.positionStore = positionStore;
@@ -32,6 +35,7 @@ public class StartupCheck implements CommandLineRunner {
         this.fileWatcherService =fileWatcherService;
         this.keywordDetector = keywordDetector;
         this.bruteForceDetector = bruteForceDetector;
+        this.cascadeDetector = cascadeDetector;
     }
 
     @Override
@@ -54,6 +58,15 @@ public class StartupCheck implements CommandLineRunner {
 
         for( int i = 1; i<=5; i++){
             boolean resultado = bruteForceDetector.detectarForcaBruta("Tentativa" + i +  "  unauthorized access");
+            System.out.println("Tentativa: " + i +" " +  resultado);
+        }
+
+        System.out.println("Divisão entre ⬆ ️ Forca Bruta e ⬇ Erros em Cascata ️");
+
+
+
+        for (int i = 1; i<=7; i++){
+            boolean resultado = cascadeDetector.detectarErrosEmCascata("Tentativa " + i + "error");
             System.out.println("Tentativa: " + i +" " +  resultado);
         }
 
