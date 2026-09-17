@@ -1,6 +1,7 @@
 package com.logsentinel.config;
 
 import com.logsentinel.alert.AlertConsolidator;
+import com.logsentinel.alert.SlackNotifier;
 import com.logsentinel.detector.BruteForceDetector;
 import com.logsentinel.detector.CascadeDetector;
 import com.logsentinel.detector.KeywordDetector;
@@ -27,8 +28,9 @@ public class StartupCheck implements CommandLineRunner {
     private final BruteForceDetector bruteForceDetector;
     private  final CascadeDetector cascadeDetector;
     private final AlertConsolidator alertConsolidator;
+    private  final SlackNotifier slackNotifier;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector , CascadeDetector cascadeDetector , AlertConsolidator alertConsolidator) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector , CascadeDetector cascadeDetector , AlertConsolidator alertConsolidator , SlackNotifier slackNotifier) {
 
         this.properties = properties;
         this.historyRepository = historyRepository;
@@ -39,6 +41,7 @@ public class StartupCheck implements CommandLineRunner {
         this.bruteForceDetector = bruteForceDetector;
         this.cascadeDetector = cascadeDetector;
         this.alertConsolidator =alertConsolidator;
+        this.slackNotifier = slackNotifier;
     }
 
     @Override
@@ -75,6 +78,8 @@ public class StartupCheck implements CommandLineRunner {
 
         String resultado = alertConsolidator.consolidarAvisos("2026-09-14 10:00:05 unauthorized ERROR access denied");
         System.out.println(resultado);
+
+        slackNotifier.enviarAlerta("Teste de alerta do LogSentinel no Slack!");
 
         fileWatcherService.iniciarMonitoramento();
 
