@@ -1,5 +1,6 @@
 package com.logsentinel.config;
 
+import com.logsentinel.alert.AlertConsolidator;
 import com.logsentinel.detector.BruteForceDetector;
 import com.logsentinel.detector.CascadeDetector;
 import com.logsentinel.detector.KeywordDetector;
@@ -25,8 +26,9 @@ public class StartupCheck implements CommandLineRunner {
     private  final KeywordDetector keywordDetector;
     private final BruteForceDetector bruteForceDetector;
     private  final CascadeDetector cascadeDetector;
+    private final AlertConsolidator alertConsolidator;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector , CascadeDetector cascadeDetector) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector , CascadeDetector cascadeDetector , AlertConsolidator alertConsolidator) {
 
         this.properties = properties;
         this.historyRepository = historyRepository;
@@ -36,6 +38,7 @@ public class StartupCheck implements CommandLineRunner {
         this.keywordDetector = keywordDetector;
         this.bruteForceDetector = bruteForceDetector;
         this.cascadeDetector = cascadeDetector;
+        this.alertConsolidator =alertConsolidator;
     }
 
     @Override
@@ -70,6 +73,8 @@ public class StartupCheck implements CommandLineRunner {
             System.out.println("Tentativa: " + i +" " +  resultado);
         }
 
+        String resultado = alertConsolidator.consolidarAvisos("2026-09-14 10:00:05 unauthorized ERROR access denied");
+        System.out.println(resultado);
 
         fileWatcherService.iniciarMonitoramento();
 
