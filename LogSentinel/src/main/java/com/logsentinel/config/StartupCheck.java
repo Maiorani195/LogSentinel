@@ -62,19 +62,7 @@ public class StartupCheck implements CommandLineRunner {
         System.out.println(keywordDetector.contemPalavraChave("2026-09-14 10:00:10 INFO Requisicao processada"));
 
 
-        for( int i = 1; i<=5; i++){
-            boolean resultado = bruteForceDetector.detectarForcaBruta("Tentativa" + i +  "  unauthorized access");
-            System.out.println("Tentativa: " + i +" " +  resultado);
-        }
 
-        System.out.println("Divisão entre ⬆ ️ Forca Bruta e ⬇ Erros em Cascata ️");
-
-
-
-        for (int i = 1; i<=7; i++){
-            boolean resultado = cascadeDetector.detectarErrosEmCascata("Tentativa " + i + "error");
-            System.out.println("Tentativa: " + i +" " +  resultado);
-        }
 
         String resultado = alertConsolidator.consolidarAvisos("2026-09-14 10:00:05 unauthorized ERROR access denied");
         System.out.println(resultado);
