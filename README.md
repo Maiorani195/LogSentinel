@@ -10,6 +10,7 @@ O **LogSentinel** é um sistema de monitoramento contínuo em background, projet
 
 - [Objetivo do Projeto](#-objetivo-do-projeto)
 - [Funcionalidades (MVP)](#-funcionalidades-mvp)
+- [Performance](#-performance)
 - [Stack Tecnológica](#-stack-tecnológica)
 - [Arquitetura](#-arquitetura)
 - [Como Rodar](#-como-rodar)
@@ -34,6 +35,10 @@ Sistemas em produção geram um volume de logs impossível de revisar manualment
 - **Envio de alertas ao Slack** via Incoming Webhook, com **retry automático** (até 3 tentativas, com backoff exponencial) em caso de falha
 - **Histórico persistente**: toda anomalia (enviada ou não) é registrada em banco SQLite, de forma **assíncrona** (não bloqueia o envio do alerta)
 
+## ⚡ Performance
+
+A latência ponta a ponta (do momento em que a linha é escrita no log até o alerta chegar no Slack) foi medida em **menos de 1 segundo**, bem dentro da meta de 3 segundos definida na especificação do projeto.
+
 ## 🛠️ Stack Tecnológica
 
 | Camada | Tecnologia |
@@ -54,7 +59,7 @@ com.logsentinel
 ├── detector/ → regras de detecção de anomalias (keyword, força bruta, cascata)
 └── alert/ → consolidação e envio de alertas (Slack)
 
-**Fluxo de execução:** Arquivo de log muda → `FileWatcherService` (WatchService) detecta a mudança → `LogWatcher` lê as linhas novas (a partir do offset salvo) → `AlertConsolidator` verifica as 3 regras de detecção → se houver anomalia, `SlackNotifier` envia o alerta (com retry) e salva no histórico (async). Se não houver anomalia, a linha é apenas descartada.
+**Fluxo de execução:** arquivo de log muda → `FileWatcherService` (WatchService) detecta a mudança → `LogWatcher` lê as linhas novas (a partir do offset salvo) → `AlertConsolidator` verifica as 3 regras de detecção → se houver anomalia, `SlackNotifier` envia o alerta (com retry) e salva no histórico (async). Se não houver anomalia, a linha é apenas descartada.
 
 ## 🚀 Como Rodar
 
