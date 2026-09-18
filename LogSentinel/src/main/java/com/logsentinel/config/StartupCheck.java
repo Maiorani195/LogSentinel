@@ -82,6 +82,14 @@ public class StartupCheck implements CommandLineRunner {
         slackNotifier.enviarAlerta("Teste de alerta do LogSentinel no Slack!");
         slackNotifier.enviarAlerta("Teste de retry!");
 
+        System.out.println("Antes de salvar ");
+        System.out.println("------------------");
+        historyRepository.salvarAnomalia("teste", "2026-09-17" , "linha de teste " , "send");
+        System.out.println("Depois de salvar");
+
+
+
+
         fileWatcherService.iniciarMonitoramento();
 
 
