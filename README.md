@@ -1,83 +1,98 @@
-
 # 🛡️ LogSentinel
-> **Desenvolvido por:** Fernando Maiorani
 
-![Java](https://img.shields.io/badge/Java_25_LTS-ED8B00?style=for-the-badge&logo=java&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
-![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)
+**Desenvolvido por:** Fernando Maiorani Costa
 
-O **LogSentinel** é um sistema de monitoramento contínuo em background projetado para vigiar arquivos de log locais e detectar anomalias instantaneamente. Focado em infraestrutura e APIs de produção, ele identifica erros críticos, tentativas de força bruta e cascatas de falhas, disparando alertas proativos no Slack em menos de 3 segundos.
+`JAVA 25 LTS` · `SPRING BOOT` · `SQLITE` · `SLACK`
 
----
+O **LogSentinel** é um sistema de monitoramento contínuo em background, projetado para vigiar arquivos de log locais e detectar anomalias instantaneamente. Focado em infraestrutura e APIs de produção, ele identifica erros críticos, tentativas de força bruta e cascatas de falhas, disparando alertas proativos no Slack em menos de 3 segundos.
 
-## 📑 Índice Interativo
+## 📋 Índice
+
 - [Objetivo do Projeto](#-objetivo-do-projeto)
 - [Funcionalidades (MVP)](#-funcionalidades-mvp)
+- [Performance](#-performance)
 - [Stack Tecnológica](#-stack-tecnológica)
-- [Arquitetura e Fluxo](#-arquitetura-e-fluxo)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Como Executar](#-como-executar)
-
----
+- [Arquitetura](#-arquitetura)
+- [Como Rodar](#-como-rodar)
+- [Configuração](#-configuração)
+- [Limitações Conhecidas (v1)](#-limitações-conhecidas-v1)
+- [Roadmap / Pós-MVP](#-roadmap--pós-mvp)
 
 ## 🎯 Objetivo do Projeto
-Servidores Linux e APIs geram volumes massivos de logs que são impossíveis de serem revisados manualmente. O LogSentinel resolve esse problema eliminando a necessidade de vigilância manual. Ele atua como uma sentinela automatizada, garantindo que administradores de infraestrutura e desenvolvedores back-end sejam notificados no exato momento em que uma anomalia ocorre, sem ruídos desnecessários.
 
----
+Sistemas em produção geram um volume de logs impossível de revisar manualmente. O LogSentinel resolve isso monitorando um arquivo de log em tempo real, aplicando regras de detecção configuráveis, e enviando alertas consolidados para o Slack assim que uma anomalia é identificada — sem intervenção manual.
 
-## ✨ Funcionalidades (MVP)
+## ✅ Funcionalidades (MVP)
 
-- [x] **Monitoramento Contínuo:** Acompanha novas linhas escritas em arquivos de log de texto puro sem necessidade de reiniciar.
-- [x] **Detecção por Palavras-Chave:** Identifica termos críticos configuráveis (ex: `ERROR`, `FATAL`, `Segmentation fault`) via busca *case-insensitive*.
-- [x] **Alarme de Força Bruta:** Detecta 5 ou mais tentativas de ações suspeitas em uma janela de 60 segundos.
-- [x] **Detecção de Cascata:** Identifica 7 ou mais erros ocorrendo em sequência em uma janela de 30 segundos.
-- [x] **Alertas de Baixa Latência:** Dispara mensagens formatadas e com o trecho relevante do log para o Slack em **< 3 segundos**.
-- [x] **Consolidação Inteligente:** Agrupa múltiplos gatilhos simultâneos em um único alerta, evitando *spam* no canal.
-- [x] **Persistência Assíncrona:** Salva o histórico de anomalias localmente em SQLite sem bloquear o fluxo de alertas.
-- [x] **Retomada Inteligente (Offset):** Em caso de reinício, retoma a leitura de onde parou, evitando duplicação de alertas.
-- [x] **Resiliência:** Tratamento nativo para rotação/truncamento de logs e sistema de *retry* com *backoff* para falhas de rede na API do Slack.
+- **Monitoramento em tempo real** de um arquivo de log local, via `WatchService` (Java NIO)
+- **Retomada de leitura**: em reinícios, o sistema continua exatamente de onde parou (offset persistido em banco)
+- **Detecção de rotação/truncamento**: se o arquivo encolher (rotacionado/truncado), o sistema reseta automaticamente sem travar
+- **Três regras de detecção**, configuráveis via `application.properties`:
+  - **Palavra-chave**: `ERROR`, `FATAL`, `CRITICAL`, `PANIC`, `EXCEPTION`, `Segmentation fault`, `Out of memory`, `connection refused`, `timeout`, `unauthorized`, `denied` (case-insensitive)
+  - **Força bruta**: 5+ tentativas de acesso não autorizado em 60 segundos (janela deslizante)
+  - **Cascata de erros**: 7+ erros em 30 segundos (janela deslizante)
+- **Consolidação de alertas**: se múltiplas regras disparam na mesma linha, gera **um único** alerta, não vários
+- **Envio de alertas ao Slack** via Incoming Webhook, com **retry automático** (até 3 tentativas, com backoff exponencial) em caso de falha
+- **Histórico persistente**: toda anomalia (enviada ou não) é registrada em banco SQLite, de forma **assíncrona** (não bloqueia o envio do alerta)
 
----
+## ⚡ Performance
 
-## 💻 Stack Tecnológica
+A latência ponta a ponta (do momento em que a linha é escrita no log até o alerta chegar no Slack) foi medida em **menos de 1 segundo**, bem dentro da meta de 3 segundos definida na especificação do projeto.
 
-* **Java 25 (LTS) & Spring Boot:** Base do projeto. A escolha do Spring Boot agiliza a injeção de dependências e facilita o uso de execuções assíncronas (`@Async`) e propriedades mapeadas.
-* **WatchService (java.nio.file):** Utilizado para reagir a eventos do sistema operacional, eliminando a latência do modelo tradicional de *polling*.
-* **SQLite & Spring JdbcTemplate:** Persistência leve e livre de configurações complexas de dialeto, ideal para gravar o offset e o histórico de forma atômica e segura.
-* **RestTemplate (Spring):** Cliente HTTP nativo do ecossistema utilizado para o disparo do *Incoming Webhook* do Slack.
+## 🛠️ Stack Tecnológica
 
----
+| Camada | Tecnologia |
+|---|---|
+| Linguagem | Java 25 (LTS) |
+| Framework | Spring Boot 4.1.1 |
+| Persistência | SQLite via Spring JdbcTemplate |
+| Monitoramento de arquivo | `java.nio.file.WatchService` + `RandomAccessFile` |
+| Notificações | Slack Incoming Webhooks via `RestTemplate` |
+| Build | Maven |
 
-## ⚙️ Arquitetura e Fluxo
+## 🏗️ Arquitetura
 
-O design do sistema prioriza a latência. As tarefas primárias (detectar e alertar) são desacopladas das tarefas secundárias (persistir no banco) usando filas internas em memória.
+com.logsentinel
+├── config/ → configurações do sistema (properties, beans, orquestração de testes)
+├── history/ → persistência: histórico de anomalias e posição do arquivo (offset)
+├── watcher/ → leitura e monitoramento do arquivo de log em tempo real
+├── detector/ → regras de detecção de anomalias (keyword, força bruta, cascata)
+└── alert/ → consolidação e envio de alertas (Slack)
 
-1. **Log Watcher:** Detecta a nova linha e repassa ao sistema.
-2. **Anomaly Detector:** Aplica as regras de negócio (palavras-chave, cascata, força bruta).
-3. **Alert Consolidator:** Reúne gatilhos acionados ao mesmo tempo.
-4. **Slack Notifier & History Store:** O fluxo se divide. O alerta sobe para o Slack via HTTP, enquanto a persistência em SQLite ocorre em thread separada de forma não bloqueante.
+**Fluxo de execução:** arquivo de log muda → `FileWatcherService` (WatchService) detecta a mudança → `LogWatcher` lê as linhas novas (a partir do offset salvo) → `AlertConsolidator` verifica as 3 regras de detecção → se houver anomalia, `SlackNotifier` envia o alerta (com retry) e salva no histórico (async). Se não houver anomalia, a linha é apenas descartada.
 
----
+## 🚀 Como Rodar
 
-## 📂 Estrutura do Projeto
+**Pré-requisitos:** Java 25 (JDK) e Maven (ou use o wrapper incluso, `./mvnw`).
 
-```text
-logsentinel/
-├── src/
-│   └── main/
-│       ├── java/com/logsentinel/
-│       │   ├── watcher/         # Log Watcher + Position Store (@Component)
-│       │   ├── detector/        # Anomaly Detector (regras de negócio)
-│       │   ├── alert/           # Alert Consolidator + Slack Notifier (@Async)
-│       │   ├── history/         # History Store (JdbcTemplate + SQLite)
-│       │   ├── config/          # @ConfigurationProperties (thresholds, keywords)
-│       │   └── LogSentinelApplication.java
-│       └── resources/
-│           └── application.properties
-├── docs/
-│   ├── spec.md
-│   ├── plan.md
-│   └── tasks.md
-├── pom.xml
-└── README.md
+**Passos:** clone o repositório com `git clone https://github.com/Maiorani195/LogSentinel.git`, configure a variável de ambiente do Slack (veja a seção Configuração abaixo), e rode com `./mvnw spring-boot:run`. O sistema começa a monitorar o arquivo de log configurado automaticamente.
+
+## ⚙️ Configuração
+
+Todas as configurações ficam em `src/main/resources/application.properties`:
+
+```properties
+# Palavras-chave monitoradas
+logsentinel.keywords=ERROR,FATAL,CRITICAL,PANIC,EXCEPTION,Segmentation fault,Out of memory,connection refused,timeout,unauthorized,denied
+
+# Força bruta: N tentativas em M segundos
+logsentinel.brute-force.attempts=5
+logsentinel.brute-force.window-seconds=60
+
+# Cascata: N erros em M segundos
+logsentinel.cascade.errors=7
+logsentinel.cascade.window-seconds=30
+
+# Webhook do Slack (via variável de ambiente, nunca hardcoded)
+logsentinel.slack.webhook-url=${SLACK_WEBHOOK_URL:}
+```
+
+**⚠️ Configurando o Webhook do Slack:** por segurança, a URL do webhook nunca fica no código-fonte — ela é lida de uma variável de ambiente. Crie um app no Slack em [api.slack.com/apps](https://api.slack.com/apps), ative Incoming Webhooks, e gere a URL para o canal desejado. Depois, defina a variável de ambiente `SLACK_WEBHOOK_URL` com essa URL — no IntelliJ, isso fica em Run → Edit Configurations → Environment variables; no terminal, use `export SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...`.
+
+## ⚠️ Limitações Conhecidas (v1)
+
+**Retomada após reinício:** se o log for editado enquanto o programa está desligado, essas linhas só são processadas na próxima notificação de mudança do arquivo — não há uma leitura proativa ao iniciar. **Rotação de log:** em caso de truncamento, o sistema reseta a leitura para o início do arquivo novo, sem tentar recuperar o conteúdo perdido do arquivo anterior. **Fonte única:** monitora apenas um arquivo de log local por instância.
+
+## 🗺️ Roadmap / Pós-MVP
+
+Suporte a múltiplas fontes de log simultâneas, integração com Discord como canal alternativo de alerta, e um dashboard web para visualização do histórico de anomalias.

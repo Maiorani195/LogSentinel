@@ -1,23 +1,47 @@
 package com.logsentinel.config;
 
+import com.logsentinel.alert.AlertConsolidator;
+import com.logsentinel.alert.SlackNotifier;
+import com.logsentinel.detector.BruteForceDetector;
+import com.logsentinel.detector.CascadeDetector;
+import com.logsentinel.detector.KeywordDetector;
+import com.logsentinel.watcher.FileWatcherService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import com.logsentinel.history.HistoryRepository;
 import com.logsentinel.history.PositionStore;
 import java.util.List;
 import java.util.Map;
+import com.logsentinel.watcher.LogWatcher;
 
 @Component
+@Order(2)
 public class StartupCheck implements CommandLineRunner {
 
     private final LogSentinelProperties properties;
     private final HistoryRepository historyRepository;
     private  final PositionStore positionStore;
+    private final LogWatcher logWatcher;
+    private final FileWatcherService fileWatcherService;
+    private  final KeywordDetector keywordDetector;
+    private final BruteForceDetector bruteForceDetector;
+    private  final CascadeDetector cascadeDetector;
+    private final AlertConsolidator alertConsolidator;
+    private  final SlackNotifier slackNotifier;
 
-    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore) {
+    public StartupCheck(LogSentinelProperties properties, HistoryRepository historyRepository, PositionStore positionStore , LogWatcher logWatcher , FileWatcherService fileWatcherService , KeywordDetector keywordDetector , BruteForceDetector bruteForceDetector , CascadeDetector cascadeDetector , AlertConsolidator alertConsolidator , SlackNotifier slackNotifier) {
+
         this.properties = properties;
         this.historyRepository = historyRepository;
         this.positionStore = positionStore;
+        this.logWatcher = logWatcher;
+        this.fileWatcherService =fileWatcherService;
+        this.keywordDetector = keywordDetector;
+        this.bruteForceDetector = bruteForceDetector;
+        this.cascadeDetector = cascadeDetector;
+        this.alertConsolidator =alertConsolidator;
+        this.slackNotifier = slackNotifier;
     }
 
     @Override
@@ -33,7 +57,32 @@ public class StartupCheck implements CommandLineRunner {
         List<Map<String, Object>> anomalias = historyRepository.listar_todas();
         System.out.println("Anomalias no banco: " + anomalias);
 
-        positionStore.salvarPosicao("teste.log", 150);
-        System.out.println("Posição salva: " + positionStore.recuperarPosicao());
+
+        System.out.println(keywordDetector.contemPalavraChave("2026-09-14 10:00:05 ERROR Falha ao conectar"));
+        System.out.println(keywordDetector.contemPalavraChave("2026-09-14 10:00:10 INFO Requisicao processada"));
+
+
+
+
+        String resultado = alertConsolidator.consolidarAvisos("2026-09-14 10:00:05 unauthorized ERROR access denied");
+        System.out.println(resultado);
+
+        slackNotifier.enviarAlerta("Teste de alerta do LogSentinel no Slack!");
+        slackNotifier.enviarAlerta("Teste de retry!");
+
+        System.out.println("Antes de salvar ");
+        System.out.println("------------------");
+        historyRepository.salvarAnomalia("teste", "2026-09-17" , "linha de teste " , "send");
+        System.out.println("Depois de salvar");
+
+
+
+
+        fileWatcherService.iniciarMonitoramento();
+
+
+
+
+
     }
 }
